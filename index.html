@@ -1,10 +1,139 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="utf-8">
+    <title>Collider — столкновение в одной точке</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.min.js"></script>
+
+
+
 </head>
 <body>
-$END$
+<a-scene embedded arjs>
+    <a-marker type="pattern" url="pattern-atlas-logo-icon-geometric-atlas-god-lifting-globe-black-logo-icon-design-illustration_755682-637.patt" id="atlas-marker">
+
+        <!--  <a-marker type="pattern" url="pattern-Atlas_Comics_logo.patt" id="atlas-marker">-->
+        <a-sphere id="flash-sphere"
+                  position="-0.4 1.5 -4"
+                  radius="0.5"
+                  color="#ffffff"
+                  material="shader: flat; opacity: 0; transparent: true"
+                  visible="false">
+
+            >
+        </a-sphere>
+        <a-entity light="type: ambient; intensity: 1"></a-entity>
+
+        <a-light id="impact-light"
+                 type="point"
+                 position="-0.5 2 0"
+                 intensity="0"
+                 color="#ffffff"
+                 distance="50"
+                 decay="1">
+        </a-light>
+
+        <!-- Тор -->
+        <a-torus position="0 1.5 -4"
+                 radius="0.5"
+                 radius-tubular="0.02"
+                 segments-radial="36"
+                 segments-tubular="64"
+                 rotation="60 0 0"
+                 color="#00aaff"
+                 material="opacity: 0.3; transparent: true">
+        </a-torus>
+
+        <!-- Шарик 1 -->
+        <!-- Общий контейнер -->
+        <a-entity id="ring-system" position="0 1.5 -4" rotation="60 0 0">
+            <a-entity id="rotator1">
+                <a-sphere position="0.5 0 0" radius="0.03" color="red"></a-sphere>
+            </a-entity>
+            <a-entity id="rotator2">
+                <a-sphere position="0.5 0 0" radius="0.03" color="blue"></a-sphere>
+            </a-entity>
+        </a-entity>
+
+
+    </a-marker>
+
+    <a-camera position="0 4.2 0"></a-camera>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+
+            AFRAME.registerComponent('collider-meet-point', {
+
+                init: function () {
+
+                    this.rot1 = document.querySelector('#rotator1');
+                    this.rot2 = document.querySelector('#rotator2');
+                    this.angle = 0;
+                    this.speed = 0;
+                    this.maxAngle = 540;
+                    this.done = false;
+                },
+                tick: function (time, deltaTime) {
+                    if (this.done) return;
+
+                    if (this.speed < 2.5) {
+                        this.speed += 0.01;
+                    }
+
+                    const step = this.speed * (deltaTime / 16.666);
+                    this.angle += step;
+
+                    this.rot1.object3D.rotation.z = THREE.MathUtils.degToRad(this.angle);
+                    this.rot2.object3D.rotation.z = THREE.MathUtils.degToRad(-this.angle);
+
+                    if (this.angle >= this.maxAngle) {
+
+                        this.done = true;
+                        const flashSphere = document.querySelector('#flash-sphere');
+
+                        flashSphere.setAttribute('visible', 'true');
+
+                        setTimeout(() => {
+                            flashSphere.setAttribute('visible', 'false');
+                        }, 400);
+
+
+                        flashSphere.setAttribute('animation__fadein', {
+                            property: 'material.opacity',
+                            from: 0,
+                            to: 1,
+                            dur: 100,
+                            easing: 'easeOutQuad'
+                        });
+
+                        flashSphere.setAttribute('animation__fadeout', {
+                            property: 'material.opacity',
+                            from: 1,
+                            to: 0,
+                            delay: 100,
+                            dur: 400,
+                            easing: 'easeInQuad'
+                        });
+
+                        const flash = document.querySelector('#impact-light');
+                        flash.setAttribute('intensity', '10');
+
+                        setTimeout(() => {
+                            flash.setAttribute('intensity', '0');
+                        }, 1000);
+                    }
+                }
+            });
+            document.querySelector('a-scene').setAttribute('collider-meet-point', '');
+
+        });
+    </script>
+
+
+    </script>
+
+</a-scene>
 </body>
 </html>
